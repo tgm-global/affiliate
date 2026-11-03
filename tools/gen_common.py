@@ -209,10 +209,10 @@ def hero(crumbs, h1, intro, extra=""):
 
 FINDER = ('<form class="finder" data-finder autocomplete="off"><div class="f-mode"><label for="fm">I want</label>'
           '<select id="fm" name="mode">{opts}</select></div>'
-          '<div class="f-from"><label for="ff">From</label><input id="ff" name="from" list="place-list" placeholder="From (city or town)"></div>'
-          '<div class="f-to"><label for="ft">To</label><input id="ft" name="to" list="place-list" placeholder="To (city or town)"></div>'
-          '<button class="btn btn-aff" type="submit">Find</button><p class="finder-msg" role="status"></p></form>'
-          '<datalist id="place-list"></datalist>')
+          '<div class="f-from"><label for="ff">From</label><input id="ff" name="from" placeholder="From (city or town)" autocomplete="off"></div>'
+          '<div class="f-to"><label for="ft">To</label><input id="ft" name="to" placeholder="To (city or town)" autocomplete="off"></div>'
+          '<button class="btn btn-aff" type="submit">Search flights</button><p class="finder-msg" role="status"></p></form>'
+          '')
 def finder(default="flights"):
     modes = [("flights", "Flights"), ("trains", "Trains"), ("buses", "Buses & Coaches"), ("tours", "Tours"),
              ("packages", "Holiday Packages"), ("taxi", "Taxi & Transfers")]
@@ -231,7 +231,7 @@ def render(fname, title, desc, keywords, body, kind, faqs=None, finder_on=False,
         fh, schema = faq_block(faqs)
         body = body.replace("<!--FAQ-->", fh)
     kw = ", ".join(dict.fromkeys(k.strip() for k in keywords if k.strip()))
-    scripts = '<script src="assets/js/places-data.js"></script>\n' if finder_on else ""
+    scripts = '<script src="assets/js/places-data.js"></script>\n<script src="assets/js/search-cities.js"></script>\n' if finder_on else ""
     doc = f"""<!doctype html>
 <html lang="en">
 <head>

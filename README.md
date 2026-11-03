@@ -27,3 +27,6 @@ python3 tools/make_sitemap.py
 - No phone, WhatsApp, email or query form. The search box only opens a page or a partner link.
 - Affiliate links use `rel="sponsored nofollow noopener"`. Disclosure appears on every page.
 - No prices or ratings are published. Times and distances are labelled estimates.
+
+## Search box data
+`tools/data/` holds about 34,000 UK and US place names (GeoNames, CC BY 4.0, and the US Cities Database, MIT). `generate_site.py` turns them into `assets/js/search-cities.js`. Only the 163 places in `tools/places_data.py` have their own guide pages. Any other place still works: the search sends the visitor to your affiliate link with the place name filled in.

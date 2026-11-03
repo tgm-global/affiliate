@@ -16,7 +16,7 @@
  * The example.com links below are PLACEHOLDERS. Replace them with your own affiliate links.
  */
 window.SITE_CONFIG = {
-  brandName: "TicketBooking",
+  brandName: "Tripwise",
   tagline: "Independent guides to flights, trains, coaches, tours and transfers across the UK and USA",
   logoImage: "assets/img/logo.svg",   // set "" to show only the brand name
   showBrandText: true,                // false = logo image only

@@ -148,3 +148,10 @@ table.plain thead th{background:var(--teal-l);color:var(--teal-d)}
 ol{padding-left:1.3em}
 code{background:var(--sand-d);padding:1px 6px;border-radius:5px}
 h2[id]{scroll-margin-top:calc(var(--hh) + 12px)}
+
+/* Search suggestions */
+.finder .f-from,.finder .f-to{position:relative}
+.ac-list{position:absolute;left:0;right:0;top:100%;z-index:50;margin:4px 0 0;padding:4px 0;list-style:none;background:#fff;color:var(--ink);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);max-height:300px;overflow-y:auto}
+.ac-list[hidden]{display:none}
+.ac-list li{padding:9px 12px;cursor:pointer;font-size:.95rem}
+.ac-list li:hover,.ac-list li.on{background:var(--teal-l)}

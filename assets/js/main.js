@@ -219,8 +219,57 @@
     Object.keys(R).forEach(function (k) { sets[k] = {}; R[k].forEach(function (s) { sets[k][s] = 1; }); });
     var mode = f.querySelector("[name=mode]"), from = f.querySelector("[name=from]"),
       to = f.querySelector("[name=to]"), msg = f.querySelector(".finder-msg"), fromWrap = f.querySelector(".f-from");
-    var dl = document.getElementById("place-list");
-    if (dl) dl.innerHTML = P.map(function (p) { return '<option value="' + esc(p[1]) + '">'; }).join("");
+    /* Type-ahead over every UK and US place name (guide places first). */
+    var ALL = null;
+    function buildAll() {
+      if (ALL) return ALL;
+      ALL = []; var seen = {};
+      P.forEach(function (p) { var k = p[1].toLowerCase(); seen[k] = 1; ALL.push([p[1], k]); });
+      var S = window.TRAVEL_SEARCH || {};
+      ["UK", "US"].forEach(function (c) {
+        var regs = S[c] || {};
+        Object.keys(regs).forEach(function (r) {
+          regs[r].forEach(function (n) { var l = n + ", " + r, k = l.toLowerCase(); if (!seen[k]) { seen[k] = 1; ALL.push([l, k]); } });
+        });
+      });
+      return ALL;
+    }
+    function suggest(q) {
+      q = q.trim().toLowerCase();
+      if (q.length < 1) return [];
+      var all = buildAll(), pre = [], inc = [], i, k;
+      for (i = 0; i < all.length && pre.length < 10; i++) { k = all[i][1]; if (k.indexOf(q) === 0) pre.push(all[i][0]); }
+      if (pre.length < 10 && q.length > 1) {
+        for (i = 0; i < all.length && inc.length < 10 - pre.length; i++) { k = all[i][1]; if (k.indexOf(q) > 0) inc.push(all[i][0]); }
+      }
+      return pre.concat(inc);
+    }
+    function attachSuggest(input) {
+      var box = document.createElement("ul"); box.className = "ac-list"; box.setAttribute("role", "listbox"); box.hidden = true;
+      input.parentNode.appendChild(box);
+      var items = [], cur = -1;
+      function hide() { box.hidden = true; cur = -1; }
+      function mark() { var li = box.children; for (var j = 0; j < li.length; j++) li[j].className = j === cur ? "on" : ""; }
+      function pickIt(v) { input.value = v; hide(); }
+      function show() {
+        items = suggest(input.value);
+        box.innerHTML = items.map(function (t) { return '<li role="option">' + esc(t) + "</li>"; }).join("");
+        box.hidden = !items.length; cur = -1;
+      }
+      input.addEventListener("input", show);
+      input.addEventListener("focus", function () { if (input.value) show(); });
+      input.addEventListener("blur", function () { setTimeout(hide, 150); });
+      input.addEventListener("keydown", function (e) {
+        if (box.hidden) return;
+        if (e.key === "ArrowDown") { e.preventDefault(); cur = (cur + 1) % items.length; mark(); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); cur = (cur <= 0 ? items.length : cur) - 1; mark(); }
+        else if (e.key === "Enter" && cur >= 0) { e.preventDefault(); pickIt(items[cur]); }
+        else if (e.key === "Escape") hide();
+      });
+      box.addEventListener("mousedown", function (e) { var li = e.target.closest("li"); if (li) { e.preventDefault(); pickIt(li.textContent); } });
+    }
+    attachSuggest(from); attachSuggest(to);
+    function clean(t) { return t.trim().replace(/,\s*[^,]+$/, ""); }
     function find(t) {
       t = (t || "").trim().toLowerCase();
       if (!t) return null;
@@ -230,31 +279,36 @@
     }
     var routeModes = { flights: 1, trains: 1, buses: 1 };
     var prefix = { tours: "tours-in-", packages: "holiday-packages-", taxi: "taxi-in-" };
+    var btnLabel = { flights: "Search flights", trains: "Search trains", buses: "Search buses", tours: "Search tours", packages: "Search packages", taxi: "Search taxis" };
+    var btn = f.querySelector("button[type=submit]");
+    function slug(t) { return clean(t).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, ""); }
     function sync() {
       var isRoute = !!routeModes[mode.value];
       fromWrap.hidden = !isRoute;
       to.placeholder = isRoute ? "To (city or town)" : "City or town";
+      btn.textContent = btnLabel[mode.value] || "Search";
       msg.textContent = "";
     }
     mode.addEventListener("change", sync);
     sync();
     f.addEventListener("submit", function (e) {
       e.preventDefault();
-      var m = mode.value, a = find(from.value), b = find(to.value), cat = m;
-      if (!to.value.trim()) { msg.textContent = "Please enter a destination."; return; }
-      if (routeModes[m]) {
-        if (!from.value.trim()) { msg.textContent = "Please enter where you are travelling from."; return; }
-        if (a && b && a !== b && sets[m] && sets[m][a[2] + "-to-" + b[2]]) { location.href = m + "-" + a[2] + "-to-" + b[2] + ".html"; return; }
-      } else if (b) { location.href = prefix[m] + b[2] + ".html"; return; }
+      var m = mode.value, a = find(from.value), b = find(to.value);
+      if (routeModes[m] && !from.value.trim()) { msg.textContent = "Please choose where you are travelling from."; return; }
+      if (!to.value.trim()) { msg.textContent = "Please choose a destination."; return; }
       var ds = routeModes[m]
-        ? { from: a ? a[0] : from.value.trim(), to: b ? b[0] : to.value.trim(), fromCode: a ? a[3] : "", toCode: b ? b[3] : "", fromSlug: a ? a[2] : "", toSlug: b ? b[2] : "" }
-        : { city: b ? b[0] : to.value.trim(), cityCode: b ? b[3] : "", citySlug: b ? b[2] : "" };
-      var href = affHref(cat, ds);
-      msg.textContent = "We have no guide page for this one yet, so we are opening our partner's search in a new tab.";
-      if (href && href !== "#") window.open(href, "_blank", "noopener");
+        ? { from: a ? a[0] : clean(from.value), to: b ? b[0] : clean(to.value), fromCode: a ? a[3] : "", toCode: b ? b[3] : "", fromSlug: a ? a[2] : slug(from.value), toSlug: b ? b[2] : slug(to.value) }
+        : { city: b ? b[0] : clean(to.value), cityCode: b ? b[3] : "", citySlug: b ? b[2] : slug(to.value) };
+      var href = affHref(m, ds);
+      if (!href || href === "#") { msg.textContent = "The partner link for this category is not set yet."; return; }
+      var guide = "";
+      if (routeModes[m] && a && b && sets[m] && sets[m][a[2] + "-to-" + b[2]]) guide = m + "-" + a[2] + "-to-" + b[2] + ".html";
+      else if (!routeModes[m] && b) guide = prefix[m] + b[2] + ".html";
+      msg.innerHTML = "Opening our partner's search" + (guide ? ' &middot; <a href="' + guide + '">read our guide</a>' : "") + "&hellip;";
+      var w = (C.openInNewTab !== false) ? window.open(href, "_blank") : null;
+      if (w) { try { w.opener = null; } catch (err) {} } else location.href = href;
     });
   }
-
   /* ---------- Init ---------- */
   function init() {
     buildHeader();

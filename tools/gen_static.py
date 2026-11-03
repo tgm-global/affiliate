@@ -281,7 +281,8 @@ def legal_pages():
         ("What we do", [f"We cover {len(PLACES)} cities and towns and {fnum(sum(len(v) for v in RT.values()))} city-to-city route guides for flights, trains and buses, plus city guides for tours, holiday packages and taxi transfers."]),
         ("How we write", ["Each page uses distances, typical travel-time ranges, airport and stop notes and booking tips. Figures are estimates for planning, and we say so clearly. We do not publish prices or ratings."]),
         ("How we are funded", ["We earn commission from affiliate partners if you book through our links. Read the <a href=\"affiliate-disclosure.html\">Affiliate Disclosure</a>."]),
-        ("Not a seller", ["We are not a travel agent and do not sell tickets. Bookings are completed with our partners."])], kind="info", updated=False)
+        ("Not a seller", ["We are not a travel agent and do not sell tickets. Bookings are completed with our partners."]),
+        ("Data credits", ["Place names in the search box come from the GeoNames gazetteer (licensed CC BY 4.0, geonames.org) and the open-source US Cities Database (MIT licence)."])], kind="info", updated=False)
     page_simple("how-it-works.html", "How It Works", "How to use this travel guide: find your route, read the planning notes and continue to a partner to see live availability and prices.",
         ["how it works", "how to book travel", "travel guide help", "affiliate travel site"], "How It Works",
         "Three simple steps from planning to booking.", [
